@@ -1,4 +1,4 @@
 from django.urls import path, include
-from shop.views import task
+from shop.views import home
 
-urlpatterns = [path("", task, name="task")]
+urlpatterns = [path("", home, name="home")]
