@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Goods
+{% endblock %}
+
+{% block content %}
+  {% for good in goods %}
+    <li>{{ good.text }}</li>
+  {% endfor %}
+{% endblock %}
