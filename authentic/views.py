@@ -5,6 +5,8 @@ from django.contrib.auth.models import User
 from authentic.serializers import UserSerializer, UserLoginSerializer
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, login
+from rest_framework.views import APIView
+from django.contrib.auth.hashers import make_password
 
 
 class UserRegistrationView(generics.CreateAPIView):
@@ -14,6 +16,10 @@ class UserRegistrationView(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
+            password = make_password(serializer.validated_data["password"])
+
+            # Заменяем пароль в данными, которые будут сохранены в базе данных
+            serializer.validated_data["password"] = password
             self.perform_create(serializer)
             headers = self.get_success_headers(serializer.data)
             # Получите пользователя, которого только что зарегистрировали
@@ -22,6 +28,7 @@ class UserRegistrationView(generics.CreateAPIView):
             # Создайте или получите токен для пользователя
             token, created = Token.objects.get_or_create(user=user)
             # Создайте URL-адрес, на который вы хотите перенаправить пользователя после регистрации
+
             redirect_url = "successfulreg"
             # Замените 'login' на имя URL-адреса страницы входа
 
@@ -45,29 +52,24 @@ def successfulreg(request):
 def log(request):
     return render(request, "authentic/autorize.html")
 
-
-class UserLoginView(generics.CreateAPIView):
-    queryset = User.objects.all()
+class UserLoginView(APIView):
     serializer_class = UserLoginSerializer
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            username = serializer.validated_data["username"]
-            password = serializer.validated_data["password"]
+            username = serializer.validated_data.get("username")
+            password = serializer.validated_data.get("password")
 
             user = authenticate(request, username=username, password=password)
 
             if user:
                 login(request, user)
-                return Response(
-                    {"message": "Вход выполнен успешно."}, status=status.HTTP_200_OK
-                )
+                return render(request, "shop/home.html")
             else:
-                print(username, password)
-                return Response(
-                    {"message": "Неверное имя пользователя или пароль."},
-                    status=status.HTTP_401_UNAUTHORIZED,
+                error_message = "Неверное имя пользователя или пароль."
+                return render(
+                    request, "authentic/autorize.html", {"error_message": error_message}
                 )
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
