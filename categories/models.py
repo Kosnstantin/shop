@@ -1,5 +1,6 @@
 from django.db import models
 
+<<<<<<< HEAD
 
 # модель категорий
 class Category(models.Model):
@@ -34,3 +35,6 @@ class SubCategory(models.Model):
 
     def __str__(self):
         return f"{self.title}"
+=======
+# Create your models here.
+>>>>>>> 73641119f3c046d637b33b2c5425727cf3be0ffe
