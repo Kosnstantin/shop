@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %}
-  home
+  Main
 {% endblock %}
 
 {% block content %}
@@ -35,18 +35,18 @@
   <main>
     <div class="categories">
       <h1>Categories</h1>
-      <div class="dropdown">
-        <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Dropdown button</button>
-        <ul class="dropdown-menu">
-          {% for i in categories %}
-            <li>
-              {{ i.text }}<br />
-            </li>
-          {% endfor %}
-        </ul>
-      </div>
-      {% for i in categories %}
-        {{ i.text }}<br />
+
+      {% for category in categories %}
+        <div class="dropdown">
+          <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">{{ category.text }}</button>
+          <ul class="dropdown-menu">
+            {% for subcategory in category.subcategory_set.all %}
+              <li>
+                <a href="">{{ subcategory.title }}</a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div><br />
       {% endfor %}
     </div>
   </main>
