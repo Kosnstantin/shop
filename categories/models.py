@@ -24,7 +24,7 @@ class Goods(models.Model):
 
 
 class Laptop(Goods):
-    brand = models.CharField(max_length=50, verbose_name="Brand", default="None brand")
+    # brand = models.CharField(max_length=50, verbose_name="Brand", default="None brand")
     processor_type = models.CharField(
         max_length=50, verbose_name="Processor Type", default="None info"
     )
