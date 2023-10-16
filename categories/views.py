@@ -8,4 +8,4 @@ def subcategory(request, subcategory_pk):
     subcategory = SubCategory.objects.get(pk=subcategory_pk)
     goods = Goods.objects.filter(subcategory=subcategory)
     context = {"goods": goods, "subcategory": subcategory}
-    return render(request, "subcategories/subcategories.html", context)
+    return render(request, "categories/subcategories.html", context)
