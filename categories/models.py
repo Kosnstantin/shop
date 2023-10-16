@@ -38,7 +38,6 @@ class Laptop(Goods):
         max_length=50, verbose_name="Operating System", default="None info"
     )
 
-
     video_card_memory_capacity = models.IntegerField(
         verbose_name="Video card memory capacity (GB)", default=1
     )
