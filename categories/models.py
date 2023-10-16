@@ -17,9 +17,7 @@ class Goods(models.Model):
     text = models.TextField(verbose_name="Text")
     price = models.IntegerField(verbose_name="Price")
     characteristics = models.TextField(verbose_name="Characteristics")
-    created_date = models.DateTimeField(auto_now_add=True)
-    publish_date = models.DateTimeField(auto_now_add=True)
-    # manufacturer = models.ForeignKey("auth.User", on_delete=models.CASCADE)
+
 
     def __str__(self):
         return f"{self.title}"
