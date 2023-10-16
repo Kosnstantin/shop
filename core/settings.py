@@ -29,11 +29,8 @@ INSTALLED_APPS = [
     "shop",
     "authentic",
     "categories",
-<<<<<<< HEAD
     "goods",
-=======
     "subcategories",
->>>>>>> subcategories
     "rest_framework",
     "rest_framework.authtoken",
 ]
