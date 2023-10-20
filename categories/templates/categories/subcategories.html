@@ -5,7 +5,71 @@
 {% endblock %}
 
 {% block content %}
-  {% for good in goods %}
-    {{ good.title }}<br />
-  {% endfor %}
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $(document).ready(function () {
+      $('.ajaxLoader').hide()
+      let originalProductsHTML = $('#filteredProducts').html()
+      $('.filter-checkbox').on('click', function () {
+        let _filterObj = {}
+        $('.filter-checkbox').each(function (index, ele) {
+          let _filterVal = $(this).val()
+          let _filterKey = $(this).data('filter')
+          _filterObj[_filterKey] = Array.from(document.querySelectorAll('input[data-filter=' + _filterKey + ']:checked')).map(function (el) {
+            return el.value
+          })
+        })
+        let filterActive = Object.values(_filterObj).some((arr) => arr.length > 0)
+    
+        if (filterActive) {
+          // Выполнять AJAX-запрос только если есть активные фильтры
+          performAjaxRequest(_filterObj)
+        } else {
+          // Восстановить исходные товары
+          $('#filteredProducts').html(originalProductsHTML)
+        }
+        // AJAX
+        function performAjaxRequest(filterObject) {
+          $.ajax({
+            url: '/filter-data',
+            data: _filterObj,
+            dataType: 'json',
+            beforeSend: function () {
+              $('.ajaxLoader').show()
+            },
+            success: function (res) {
+              let filteredProductsHTML = $(res.data).find('#filteredProducts').html()
+              $('#filteredProducts').html(filteredProductsHTML)
+              $('.ajaxLoader').hide()
+            }
+          })
+        }
+      })
+    })
+  </script>
+  <div class="container mt-5">
+    <div class="row">
+      <div class="mt-5 col">
+        {% for laptop in laptops %}
+          <input class="filter-checkbox" type="checkbox" data-filter="title" value="{{ laptop.title }}" />
+          <label>{{ laptop.title }}</label><br />
+        {% endfor %}
+      </div>
+
+      <div class="mt-5 col">
+        {% for laptop in laptops %}
+          <input class="filter-checkbox" type="checkbox" data-filter="price" value="{{ laptop.price }}" />
+          <label>{{ laptop.price }}</label><br />
+        {% endfor %}
+      </div>
+
+      <div class="col-9" id="filteredProducts">
+        <p class="ajaxLoader">Loading...</p>
+        {% for laptop in goods %}
+          {{ laptop.title }} -
+          <b>{{ laptop.price }}</b>UAH<br />
+        {% endfor %}
+      </div>
+    </div>
+  </div>
 {% endblock %}
