@@ -46,7 +46,7 @@ class Laptop(Goods):
     )
 
 
-class Monitor(Goods):
+class PC(Goods):
     screen_size = models.DecimalField(
         max_digits=4, decimal_places=2, verbose_name="Screen Size"
     )

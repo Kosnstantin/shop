@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-
 {% block title %}
   {{ subcategory.title }}
 {% endblock %}
@@ -49,27 +48,32 @@
   </script>
   <div class="container mt-5">
     <div class="row">
+      {% comment %} <div class="mt-5 col">
+        {% for good in goods %}
+          <input class="filter-checkbox" type="checkbox" data-filter="title" value="{{ good.title }}" />
+          <label>{{ good.title }}</label><br />
+        {% endfor %}
+      </div> {% endcomment %}
       <div class="mt-5 col">
-        {% for laptop in laptops %}
-          <input class="filter-checkbox" type="checkbox" data-filter="title" value="{{ laptop.title }}" />
-          <label>{{ laptop.title }}</label><br />
+        {% for titles in fields_verbovse_name %}
+          <input class="filter-checkbox" type="checkbox" data-filter="title" value="{{ titles }}" />
+          <label>{{ titles }}</label><br />
         {% endfor %}
       </div>
-
-      <div class="mt-5 col">
-        {% for laptop in laptops %}
-          <input class="filter-checkbox" type="checkbox" data-filter="price" value="{{ laptop.price }}" />
-          <label>{{ laptop.price }}</label><br />
-        {% endfor %}
-      </div>
-
       <div class="col-9" id="filteredProducts">
         <p class="ajaxLoader">Loading...</p>
-        {% for laptop in goods %}
-          {{ laptop.title }} -
-          <b>{{ laptop.price }}</b>UAH<br />
+        {% for good in goods %}
+          {{ good.title }} -
+          <b>{{ good.price }}</b>UAH<br />
         {% endfor %}
       </div>
     </div>
   </div>
+  {% comment %} <div class="div">
+    <div class="col">
+      {% for i in fields_verbovse_name %}
+        {{ i }}<br />
+      {% endfor %}
+    </div>
+  </div> {% endcomment %}
 {% endblock %}
