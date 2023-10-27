@@ -27,10 +27,13 @@
           // Восстановить исходные товары
           $('#filteredProducts').html(originalProductsHTML)
         }
+        // Получить текущий URL-адрес страницы
+    
         // AJAX
-        function performAjaxRequest(filterObject) {
+        function performAjaxRequest(_filterObj) {
+          var subcategory_pk = window.location.pathname.split('/').pop()
           $.ajax({
-            url: '/filter-data',
+            url: '/filter-data/' + subcategory_pk,
             data: _filterObj,
             dataType: 'json',
             beforeSend: function () {
@@ -46,21 +49,27 @@
       })
     })
   </script>
+
   <div class="container mt-5">
     <div class="row">
-      {% comment %} <div class="mt-5 col">
-        {% for good in goods %}
-          <input class="filter-checkbox" type="checkbox" data-filter="title" value="{{ good.title }}" />
-          <label>{{ good.title }}</label><br />
-        {% endfor %}
-      </div> {% endcomment %}
-      <div class="mt-5 col">
-        {% for titles in fields_verbovse_name %}
-          <input class="filter-checkbox" type="checkbox" data-filter="title" value="{{ titles }}" />
-          <label>{{ titles }}</label><br />
+      <div class="mt-5 col-4">
+        {% for titles, param in fields_verbovse_name.items %}
+          <label>
+            {% for key in param.keys %}
+              {{ key }}
+            {% endfor %}
+          </label><br />
+          <ul>
+            {% for item in param.values %}
+              {% for val in item %}
+                <input class="filter-checkbox" type="checkbox" data-filter="{{ titles }}" value="{{ val }}" />
+                <label>{{ val }}</label><br />
+              {% endfor %}
+            {% endfor %}
+          </ul>
         {% endfor %}
       </div>
-      <div class="col-9" id="filteredProducts">
+      <div class="col-8" id="filteredProducts">
         <p class="ajaxLoader">Loading...</p>
         {% for good in goods %}
           {{ good.title }} -
@@ -69,11 +78,4 @@
       </div>
     </div>
   </div>
-  {% comment %} <div class="div">
-    <div class="col">
-      {% for i in fields_verbovse_name %}
-        {{ i }}<br />
-      {% endfor %}
-    </div>
-  </div> {% endcomment %}
 {% endblock %}

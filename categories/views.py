@@ -1,23 +1,31 @@
 from django.http import JsonResponse
 from django.shortcuts import render
 from categories.models import Goods, SubCategory, Laptop, PC, PetFood
-from django.views.generic import ListView
 from django.template.loader import render_to_string
 from django.db.models import Q
 from django.apps import apps
+
 # Create your views here.
 
 
-def fil(goods_filtername, modelName):
-    goods_fields_verbovse_name = []
-    for i in goods_filtername:
+def fil(goods_filtername, goods):
+    goods_fields_verbovse_name = {}
+    for field in goods_filtername:
+        verbose_name = field.verbose_name
+
         if (
-            i.verbose_name != "ID"
-            and i.verbose_name != "subcategory"
-            and i.verbose_name != "Characteristics"
+            verbose_name != "ID"
+            and verbose_name != "subcategory"
+            and verbose_name != "Characteristics"
+            and verbose_name != "goods ptr"
         ):
-            field = i.verbose_name
-            goods_fields_verbovse_name.append(field)
+            field_value = set([getattr(obj, field.name) for obj in goods])
+            field_list = list(field_value)
+            field_dict = {verbose_name: field_list}
+
+            goods_fields_verbovse_name[field.name] = field_dict
+            # goods_fields_verbovse_name[field.name] = field_value
+    print(goods_fields_verbovse_name)
     return goods_fields_verbovse_name
 
 
@@ -25,51 +33,55 @@ subcategory_to_product_model = {
     "PC": PC,
     "Laptop": Laptop,
     "PetFood": PetFood,
-    # Добавьте остальные подкатегории и модели продуктов
 }
-# subcategory_to_product_model = [PC, Laptop]
 
-# for i in 
+
 def subcategory(request, subcategory_pk):
     subcategory = SubCategory.objects.get(pk=subcategory_pk)
-    goods = Goods.objects.filter(subcategory=subcategory)
 
-    for name_cat in subcategory_to_product_model:
-        if name_cat == subcategory.title:
-            nm = name_cat
-  
-    sn = apps.get_model('categories', nm)
-    fields = sn._meta.get_fields()
-    fields_verbovse_name = fil(fields, sn)
+    for name_model in subcategory_to_product_model:
+        if name_model == subcategory.title:
+            nm = name_model
 
-    # laptops_fields = Laptop._meta.get_fields()
-    # laptops_fields_verbovse_name = fil(laptops_fields, Laptop)
-    # monitor_fileds = Monitor._meta.get_fields()
-    # product_model = subcategory_to_product_model.get(subcategory_name, None)
-    # print(i)
-    # print(product_model)
+    model_class_for_filter = apps.get_model("categories", nm)
+    goods = model_class_for_filter.objects.filter(subcategory=subcategory)
+
+    fields_of_select_model = model_class_for_filter._meta.get_fields()
+
+    fields_verbovse_name = fil(fields_of_select_model, goods)
+
     context = {
         "goods": goods,
         "subcategory": subcategory,
-        "fields_verbovse_name": fields_verbovse_name
-        # "laptops_fileds_verbovse_name": laptops_fields_verbovse_name,
-        # "monitor_fileds": monitor_fileds,
+        "fields_verbovse_name": fields_verbovse_name,
+        "fields_of_select_model": fields_of_select_model,
     }
     return render(request, "categories/subcategories.html", context)
 
 
-def filter_data(request):
-    titles = request.GET.getlist("title[]")
-    prices = request.GET.getlist("price[]")
-    allGoods = Goods.objects.all().order_by("-id").distinct()
+def filter_data(request, subcategory_pk):
+    subcategory = SubCategory.objects.get(pk=subcategory_pk)
+    for name_model in subcategory_to_product_model:
+        if name_model == subcategory.title:
+            nm = name_model
 
+    model_class_for_filter = apps.get_model("categories", nm)
+    allGoods = (
+        model_class_for_filter.objects.filter(subcategory=subcategory)
+        .order_by("-id")
+        .distinct()
+    )
+    if model_class_for_filter is None:
+        # Обработка ошибки, если не найдена подходящая модель
+        return JsonResponse({"error": "Model not found"})
     q_objects = Q()
 
-    if titles:
-        q_objects |= Q(title__in=titles)
+    for field_name in model_class_for_filter._meta.get_fields():
+        field_name = field_name.name
+        field_values = request.GET.getlist(field_name + "[]")
 
-    if prices:
-        q_objects |= Q(price__in=prices)
+        if field_values:
+            q_objects |= Q(**{f"{field_name}__in": field_values})
 
     if q_objects:
         allGoods = allGoods.filter(q_objects).distinct()
