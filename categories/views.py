@@ -4,6 +4,7 @@ from categories.models import Goods, SubCategory, Laptop, PC, PetFood
 from django.template.loader import render_to_string
 from django.db.models import Q
 from django.apps import apps
+from django.core.paginator import Paginator
 
 # Create your views here.
 
@@ -19,13 +20,13 @@ def fil(goods_filtername, goods):
             and verbose_name != "Characteristics"
             and verbose_name != "goods ptr"
         ):
-            field_value = set([getattr(obj, field.name) for obj in goods])
+            field_value = set(
+                [getattr(obj, field.name) for obj in goods]
+            )  # создает наборы из атрибутов переменных, которые = field.name
             field_list = list(field_value)
             field_dict = {verbose_name: field_list}
 
             goods_fields_verbovse_name[field.name] = field_dict
-            # goods_fields_verbovse_name[field.name] = field_value
-    print(goods_fields_verbovse_name)
     return goods_fields_verbovse_name
 
 
@@ -41,14 +42,24 @@ def subcategory(request, subcategory_pk):
 
     for name_model in subcategory_to_product_model:
         if name_model == subcategory.title:
-            nm = name_model
+            nm = name_model  # получаем текущую модель с помощью pk подкатегории
 
-    model_class_for_filter = apps.get_model("categories", nm)
-    goods = model_class_for_filter.objects.filter(subcategory=subcategory)
+    model_class_for_filter = apps.get_model(
+        "categories", nm
+    )  # получаем нужную модель, по имени модели и приложения
+    goods = model_class_for_filter.objects.filter(
+        subcategory=subcategory
+    )  # получаем товары которые относятся только к текущей категории
 
-    fields_of_select_model = model_class_for_filter._meta.get_fields()
+    fields_of_select_model = (
+        model_class_for_filter._meta.get_fields()
+    )  # атрибуты модели
 
     fields_verbovse_name = fil(fields_of_select_model, goods)
+
+    paginator = Paginator(goods, 2)  # Разбиваем продукты на страницы по 10 элементов
+    page = request.GET.get("page")  # Получаем номер страницы из параметра GET
+    goods = paginator.get_page(page)
 
     context = {
         "goods": goods,
@@ -66,14 +77,16 @@ def filter_data(request, subcategory_pk):
             nm = name_model
 
     model_class_for_filter = apps.get_model("categories", nm)
+
     allGoods = (
         model_class_for_filter.objects.filter(subcategory=subcategory)
         .order_by("-id")
         .distinct()
-    )
+    )  # сортировка от самых новых до самых старых и без дубликатов
     if model_class_for_filter is None:
         # Обработка ошибки, если не найдена подходящая модель
         return JsonResponse({"error": "Model not found"})
+
     q_objects = Q()
 
     for field_name in model_class_for_filter._meta.get_fields():
@@ -81,7 +94,9 @@ def filter_data(request, subcategory_pk):
         field_values = request.GET.getlist(field_name + "[]")
 
         if field_values:
-            q_objects |= Q(**{f"{field_name}__in": field_values})
+            q_objects |= Q(
+                **{f"{field_name}__in": field_values}
+            )  # проверка, входит ли значение поля в список значений, |= применяется для объединения существующего объекта Q с новым условием
 
     if q_objects:
         allGoods = allGoods.filter(q_objects).distinct()

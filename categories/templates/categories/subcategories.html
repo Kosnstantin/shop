@@ -1,80 +1,66 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block title %}
   {{ subcategory.title }}
 {% endblock %}
 
-{% block content %}
+{% block link %}
+  <link rel="stylesheet" type="text/css" href="{% static 'categories/css/goods-styles.css' %}" />
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script>
-    $(document).ready(function () {
-      $('.ajaxLoader').hide()
-      let originalProductsHTML = $('#filteredProducts').html()
-      $('.filter-checkbox').on('click', function () {
-        let _filterObj = {}
-        $('.filter-checkbox').each(function (index, ele) {
-          let _filterVal = $(this).val()
-          let _filterKey = $(this).data('filter')
-          _filterObj[_filterKey] = Array.from(document.querySelectorAll('input[data-filter=' + _filterKey + ']:checked')).map(function (el) {
-            return el.value
-          })
-        })
-        let filterActive = Object.values(_filterObj).some((arr) => arr.length > 0)
-    
-        if (filterActive) {
-          // Выполнять AJAX-запрос только если есть активные фильтры
-          performAjaxRequest(_filterObj)
-        } else {
-          // Восстановить исходные товары
-          $('#filteredProducts').html(originalProductsHTML)
-        }
-        // Получить текущий URL-адрес страницы
-    
-        // AJAX
-        function performAjaxRequest(_filterObj) {
-          var subcategory_pk = window.location.pathname.split('/').pop()
-          $.ajax({
-            url: '/filter-data/' + subcategory_pk,
-            data: _filterObj,
-            dataType: 'json',
-            beforeSend: function () {
-              $('.ajaxLoader').show()
-            },
-            success: function (res) {
-              let filteredProductsHTML = $(res.data).find('#filteredProducts').html()
-              $('#filteredProducts').html(filteredProductsHTML)
-              $('.ajaxLoader').hide()
-            }
-          })
-        }
-      })
-    })
-  </script>
+  <script src="{% static 'categories/js/filter-goods.js' %}"></script>
+{% endblock %}
 
+{% block content %}
+  <a href="{% url 'home' %}" class="backhomearrow fs-2">&larr; back</a>
   <div class="container mt-5">
     <div class="row">
-      <div class="mt-5 col-4">
+      <div class="mt-5 col-3">
         {% for titles, param in fields_verbovse_name.items %}
           <label>
             {% for key in param.keys %}
-              {{ key }}
+              <div class="mt-3 filter-verbovsename">{{ key }}</div>
             {% endfor %}
           </label><br />
-          <ul>
-            {% for item in param.values %}
+          {% for item in param.values %}
+            <div class="filter-list">
               {% for val in item %}
                 <input class="filter-checkbox" type="checkbox" data-filter="{{ titles }}" value="{{ val }}" />
-                <label>{{ val }}</label><br />
+                <label class="txt">{{ val }}</label><br />
               {% endfor %}
-            {% endfor %}
-          </ul>
+            </div>
+          {% endfor %}
         {% endfor %}
       </div>
       <div class="col-8" id="filteredProducts">
         <p class="ajaxLoader">Loading...</p>
-        {% for good in goods %}
-          {{ good.title }} -
-          <b>{{ good.price }}</b>UAH<br />
-        {% endfor %}
+        <div class="product-list">
+          {% for good in goods %}
+            <a href="{% url 'good_page' good_pk=good.pk %}" class="product-item">
+              {{ good.title }}
+              <b>{{ good.price }}</b>₴<br />
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="container">
+    <div class="row">
+      <div class="pagination mt-5 mb-4 justify-content-center">
+        <div class="step-links">
+          {% if goods.has_previous %}
+            <a href="?page=1">Первая</a>
+            <a href="?page={{ goods.previous_page_number }}">{{ goods.previous_page_number }}</a>
+          {% endif %}
+
+          <span class="current-page">Страница {{ goods.number }} из {{ goods.paginator.num_pages }}.</span>
+
+          {% if goods.has_next %}
+            <a href="?page={{ goods.next_page_number }}">Следующая</a>
+            <a href="?page={{ goods.paginator.num_pages }}">{{ goods.paginator.num_pages }}</a>
+          {% endif %}
+        </div>
       </div>
     </div>
   </div>
