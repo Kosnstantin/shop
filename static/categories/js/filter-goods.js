@@ -24,7 +24,7 @@ $(document).ready(function () {
 
         // AJAX
         function performAjaxRequest(_filterObj) {
-            var subcategory_pk = window.location.pathname.split('/').pop() // получаем из урла первичный ключ подкатегории
+            let subcategory_pk = window.location.pathname.split('/').pop() // получаем из урла первичный ключ подкатегории
             $.ajax({
                 url: '/filter-data/' + subcategory_pk,
                 data: _filterObj,

@@ -1,20 +1,26 @@
 {% extends 'base.html' %}
+{% load static %}
+{% block title %}
+  {{ good.title }}
+{% endblock %}
 
+{% block link %}
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="{% static 'goods/js/productbar.js' %}"></script>
+{% endblock %}
 {% block content %}
   <div class="container">
     <div class="row">
-      <div class="col-md-4">
-        <!-- Бар с пунктами -->
-        <ul class="list-group">
-          <li class="list-group-item" id="item-about">Про товар</li>
-          <li class="list-group-item" id="item-review">Добавить отзыв</li>
-          <li class="list-group-item" id="item-features">Характеристики</li>
-        </ul>
+      {% comment %} <div class="col-8"></div> {% endcomment %}
+      <div class="col-4 mt-5 d-flex" style="justify-content: space-between;">
+        <a class="div" style="cursor: pointer;" id="good_info">Info about product</a><br />
+        <a class="div" style="cursor: pointer;" id="characteristics">More info</a><br />
+        <a class="div" style="cursor: pointer;" id="add_review">Add review</a><br />
       </div>
-      <div class="col-md-8">
-        <!-- Контейнер для загружаемого контента -->
-        <div id="content-container"></div>
-      </div>
+    </div>
+
+    <div id="content">
+      <!-- Здесь будет загружен другой шаблон -->
     </div>
   </div>
 {% endblock %}

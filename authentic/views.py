@@ -1,12 +1,12 @@
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from rest_framework import generics, status
 from rest_framework.response import Response
 from django.contrib.auth.models import User
 from authentic.serializers import UserSerializer, UserLoginSerializer
-from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, login
 from rest_framework.views import APIView
 from django.contrib.auth.hashers import make_password
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 class UserRegistrationView(generics.CreateAPIView):
@@ -25,19 +25,24 @@ class UserRegistrationView(generics.CreateAPIView):
             # Получите пользователя, которого только что зарегистрировали
             user = serializer.instance
 
-            # Создайте или получите токен для пользователя
-            token, created = Token.objects.get_or_create(user=user)
             # Создайте URL-адрес, на который вы хотите перенаправить пользователя после регистрации
-
             redirect_url = "successfulreg"
-            # Замените 'login' на имя URL-адреса страницы входа
+            # Создаем токен
+            refresh = RefreshToken.for_user(user)
 
-            response_data = {"data": serializer.data, "token": token.key}
+            response_data = {
+                "data": serializer.data,
+                # "refresh_token": str(refresh),
+                # "access_token": str(refresh.access_token),
+            }
             # Верните ответ с кодом 302 и заголовком Location
             response = Response(response_data, status=status.HTTP_302_FOUND)
             response["Location"] = redirect_url
+            # print(response_data)
             return response
+
         else:
+            # print(token)
             return render(request, "authentic/registr.html", {"form": serializer})
 
 
@@ -52,6 +57,7 @@ def successfulreg(request):
 def log(request):
     return render(request, "authentic/autorize.html")
 
+
 class UserLoginView(APIView):
     serializer_class = UserLoginSerializer
 
@@ -65,7 +71,20 @@ class UserLoginView(APIView):
 
             if user:
                 login(request, user)
-                return render(request, "shop/home.html")
+                # Аутентификация прошла успешно, создаем JWT-токен
+                refresh = RefreshToken.for_user(user)
+
+                # Включаем токен в ответ
+                context = {
+                    "user_id": user.id,
+                    "username": user.username,
+                    "access_token": str(refresh.access_token),
+                    "refresh_token": str(refresh),
+                }
+                # print(context)
+                # return render(request, "shop/home.html", context)
+                return redirect("../", context)
+                
             else:
                 error_message = "Неверное имя пользователя или пароль."
                 return render(

@@ -27,12 +27,24 @@
           </div>
           <div class="offcanvas-body">
             <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
-              <li class="nav-item">
+              {% comment %} <li class="nav-item">
                 <a class="nav-link active" aria-current="page" href="{% url 'registr' %}"><span>Sign up</span></a>
               </li>
               <li class="nav-item">
                 <a class="nav-link active" aria-current="page" href="{% url 'autorize' %}"><span>Log in</span></a>
-              </li>
+              </li> {% endcomment %}
+              {% if not user.is_authenticated %}
+                <li class="nav-item">
+                  <a class="nav-link active" aria-current="page" href="{% url 'registr' %}"><span>Sign up</span></a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link active" aria-current="page" href="{% url 'autorize' %}"><span>Log in</span></a>
+                </li>
+              {% else %}
+                <li class="nav-item">
+                  <a class="nav-link active" aria-current="page" href="{% url 'logout' %}?next=../"><span>Log out</span></a>
+                </li>
+              {% endif %}
             </ul>
             <form class="d-flex mt-3" role="search">
               <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" />
